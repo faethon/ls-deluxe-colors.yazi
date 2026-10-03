@@ -147,6 +147,18 @@ local function fmt_mtime_colored(mtime_secs)
 	return colored_span(text, color)
 end
 
+local function mtime_secs(file)
+	local st = file.stat or file.cha
+	local m = st and st.mtime
+	if m == nil then
+		return 0
+	end
+	if type(m) == "userdata" then
+		return math.floor(m.unix)
+	end -- main: Time
+	return math.floor(m) -- 26.9.1: number
+end
+
 -- Load config
 local _load_config = ya.sync(function(_, opts)
 	opts = opts or {}
@@ -171,13 +183,13 @@ end)
 
 -- Linemode: lsd_mtime (date only, colored)
 function Linemode:lsd_mtime()
-	local mtime = math.floor(self._file.cha.mtime or 0)
+	local mtime = mtime_secs(self._file)
 	return fmt_mtime_colored(mtime)
 end
 
 -- Linemode: lsd_size_mtime (size + colored date)
 function Linemode:lsd_size_mtime()
-	local mtime = math.floor(self._file.cha.mtime or 0)
+	local mtime = mtime_secs(self._file)
 	local size_span = fmt_size_colored(self._file)
 	local date_s = fmt_mtime_colored(mtime)
 
